@@ -1,0 +1,16 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>images/circle-xmark.png</file>
+    <file>images/folder-open.png</file>
+    <file>images/forward-fast.png</file>
+    <file>images/forward.png</file>
+    <file>images/list-music.png</file>
+    <file>images/play-pause.png</file>
+    <file>images/play.png</file>
+    <file>images/rewind.png</file>
+    <file>images/stop.png</file>
+    <file>images/volume-off.png</file>
+    <file>images/window-maximize.png</file>
+    <file>images/window-minimize.png</file>
+  </qresource>
+</RCC>

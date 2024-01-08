@@ -1,0 +1,7 @@
+setVisible(True)
+        # self.table_songs.horizontalHeader().setCascadingSectionResizes(False)
+        # self.table_songs.horizontalHeader().setDefaultSectionSize(100)
+        # self.table_songs.horizontalHeader().setHighlightSections(True)
+        # self.table_songs.horizontalHeader().setSortIndicatorShown(False)
+        # self.table_songs.horizontalHeader().setStretchLastSection(True)
+        # self.table_songs.verticalHeader().setStretchLastSection(False)
