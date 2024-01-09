@@ -1,4 +1,4 @@
-from cgitb import text
+# from cgitb import text
 import sys
 from pygame import mixer
 from PyQt6.QtGui import QPixmap, QImage
@@ -21,12 +21,17 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.btn_stop.clicked.connect(self.stop)
         self.btn_back.clicked.connect(self.back)
         self.table_songs.itemSelectionChanged.connect(self.select_song)
+        self.slider_volume.valueChanged.connect(self.volume_changer)
     
     is_playing = False
     pause = False
     song_list = []
     current_song = ""
     song_path = []
+    
+    def volume_changer(self):
+        mixer.music.set_volume(self.slider_volume.value()/100)
+    
     
     def play_pause(self):
         
@@ -91,7 +96,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.is_playing = False
         self.current_song = self.song_list[self.table_songs.currentRow()]
         self.play_pause()
-         
+
     def tag_extractor(self, mysong):
         audio = ID3(mysong)
         song_artist = audio.get("TPE1").text[0]
