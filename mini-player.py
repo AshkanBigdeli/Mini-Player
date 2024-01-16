@@ -22,6 +22,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.btn_back.clicked.connect(self.back)
         self.table_songs.itemSelectionChanged.connect(self.select_song)
         self.slider_volume.valueChanged.connect(self.volume_changer)
+        self.btn_forward.clicked.connect(self.next)
+        
     
     is_playing = False
     pause = False
@@ -31,7 +33,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     
     def volume_changer(self):
         mixer.music.set_volume(self.slider_volume.value()/100)
-    
     
     def play_pause(self):
         
@@ -85,6 +86,15 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.current_song = self.song_list[0]
             self.play_pause()
 
+    def next(self):
+        self.current_song = self.song_list[self.table_songs.currentRow() + 2]
+        print(self.current_song)
+        self.is_playing = False
+        mixer.music.load(self.current_song)
+        mixer.music.play()
+        # self.play_pause()
+
+    
     def label_changer(self):
         a = self.tag_extractor(self.current_song)
         if self.is_playing == True:
