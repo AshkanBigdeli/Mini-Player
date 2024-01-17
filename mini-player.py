@@ -2,7 +2,7 @@
 import sys
 from pygame import mixer
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6 import QtWidgets, uic
+from PyQt6 import QtWidgets, uic, QtGui
 from PyQt6.QtWidgets import QFileDialog, QTableWidgetItem
 from PIL import ImageTk, Image
 from mutagen.id3 import ID3
@@ -50,6 +50,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             elif self.pause == True:
                 mixer.music.unpause()
                 self.pause = False
+                self.is_playing = True
                 self.btn_playpause.setText("Pause")
 
             else:
@@ -68,31 +69,47 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     def fill_list(self, open_file):
 
         for song in range(len(open_file)):
-            row = self.table_songs.rowCount()
             this_song =self.tag_extractor(open_file[song])
-            this_song =self.tag_extractor(open_file[song])
-            self.song_list.append(this_song["Path"])
-            self.table_songs.insertRow(row)
-            self.table_songs.setItem(row, 0, QTableWidgetItem(this_song['Artist']))
-            self.table_songs.setItem(row, 1, QTableWidgetItem(str(this_song['Title'])))
-            self.table_songs.setItem(row, 2, QTableWidgetItem(this_song['Album']))
-            self.table_songs.setItem(row, 3, QTableWidgetItem(this_song['Length']))
-
+            song_dict = {
+                "path": this_song['Path'],
+                "title": this_song["Title"],
+                "album": this_song["Album"],
+                "artist": this_song["Artist"],
+                # "artwork": this_song["Artwork"],
+                "duration": this_song["Duration"],
+            }
+            if song_dict not in self.song_list:
+                self.song_list.append(song_dict)
+                row = self.table_songs.rowCount()
+                self.table_songs.insertRow(row)
+                self.table_songs.setItem(row, 0, QTableWidgetItem(self.song_list[song]['artist']))
+                self.table_songs.setItem(row, 1, QTableWidgetItem(str(self.song_list[song]['title'])))
+                self.table_songs.setItem(row, 2, QTableWidgetItem(self.song_list[song]['album']))
+                self.table_songs.setItem(row, 3, QTableWidgetItem(str(self.song_list[song]['duration'])))
+            else:
+                pass
 
     def back(self):
+        open_file=""
         open_file = list(QFileDialog.getOpenFileNames(caption="Open Song")[0])
+        print(open_file)
         self.fill_list(open_file)
-        if self.is_playing == False:
-            self.current_song = self.song_list[0]
+        if self.is_playing == False and self.pause == False:
+            self.current_song = self.song_list[0]['path']
             self.play_pause()
 
     def next(self):
-        self.current_song = self.song_list[self.table_songs.currentRow() + 2]
-        print(self.current_song)
-        self.is_playing = False
-        mixer.music.load(self.current_song)
-        mixer.music.play()
-        # self.play_pause()
+        for item in self.song_list:
+            if item['path'] == self.current_song:
+                current_row = self.song_list.index(item)
+                break
+        
+        if current_row != len(self.song_list)-1:
+            self.current_song = self.song_list[current_row+1]['path']
+        else:
+            self.current_song = self.song_list[0]['path']
+        self.stop()
+        self.play_pause()
 
     
     def label_changer(self):
@@ -104,7 +121,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     def select_song(self):
         mixer.music.stop()
         self.is_playing = False
-        self.current_song = self.song_list[self.table_songs.currentRow()]
+        selected_row = self.table_songs.currentRow()
+        self.current_song = self.song_list[selected_row]['path']
         self.play_pause()
 
     def tag_extractor(self, mysong):
@@ -112,26 +130,29 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         song_artist = audio.get("TPE1").text[0]
         song_artwork = audio.get("APIC:")
         song_album = audio.get("TALB").text[0]
-        song_length = audio.get("TLEN")
+        song_duration = audio.get("TLEN")
         song_path = mysong
         song_name = audio.get("TIT2")
-        song_length = str(strftime("%M:%S", gmtime(MP3(mysong).info.length)))
+        song_duration = str(strftime("%M:%S", gmtime(MP3(mysong).info.length)))
         song_tags = {
             'Artist' : song_artist,
             'Album' : song_album,
-            'Length' : song_length,
+            'Duration' : song_duration,
             'Artwork' : song_artwork,
             'Path' : song_path,
             "Title" : song_name,
-            "Length" : song_length,
+            
         }
         return song_tags
 
     def artwork(self):
         artwork = self.tag_extractor(self.current_song)['Artwork']
-        pixmap = QPixmap()
-        pixmap.loadFromData(artwork.data)
-        self.lbl_artwork.setPixmap(pixmap)
+        if artwork is not None:
+            pixmap = QPixmap()
+            pixmap.loadFromData(artwork.data)
+            self.lbl_artwork.setPixmap(pixmap)
+        else:
+            self.lbl_artwork.setPixmap(QtGui.QPixmap(":/icons/images/list-music.png"))
 
 
 app = QtWidgets.QApplication(sys.argv)
