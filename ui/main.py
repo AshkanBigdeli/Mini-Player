@@ -141,6 +141,10 @@ class Ui_MainWindow(object):
         self.gridLayout_5 = QtWidgets.QGridLayout(self.frameDown)
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.table_songs = QtWidgets.QTableWidget(self.frameDown)
+
+        self.table_songs.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)  # انتخاب کل ردیف
+        self.table_songs.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)  # غیرفعال کردن ویرایش محتوای سلول
+
         # self.table_songs.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table_songs.setTabletTracking(False)
         # self.table_songs.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)

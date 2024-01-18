@@ -20,7 +20,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.btn_playpause.clicked.connect(self.play_pause)
         self.btn_stop.clicked.connect(self.stop)
         self.btn_back.clicked.connect(self.back)
-        self.table_songs.itemSelectionChanged.connect(self.select_song)
+        # self.table_songs.itemSelectionChanged.connect(self.select_song)
+        self.table_songs.itemDoubleClicked.connect(self.select_song)
         self.slider_volume.valueChanged.connect(self.volume_changer)
         self.btn_forward.clicked.connect(self.next)
         
@@ -97,6 +98,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         if self.is_playing == False and self.pause == False:
             self.current_song = self.song_list[0]['path']
             self.play_pause()
+            self.table_songs.selectRow(0)
 
     def next(self):
         for item in self.song_list:
