@@ -1,5 +1,5 @@
 # from cgitb import text
-import sys
+import sys, os
 from pygame import mixer
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6 import QtWidgets, uic, QtGui
@@ -30,6 +30,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     song_list = []
     current_song = ""
     song_path = []
+    list_counter = 0
     
     def volume_changer(self):
         mixer.music.set_volume(self.slider_volume.value()/100)
@@ -75,24 +76,23 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 "title": this_song["Title"],
                 "album": this_song["Album"],
                 "artist": this_song["Artist"],
+                "file_name" : this_song["File_Name"],
                 # "artwork": this_song["Artwork"],
                 "duration": this_song["Duration"],
             }
             if song_dict not in self.song_list:
                 self.song_list.append(song_dict)
-                row = self.table_songs.rowCount()
-                self.table_songs.insertRow(row)
-                self.table_songs.setItem(row, 0, QTableWidgetItem(self.song_list[song]['artist']))
-                self.table_songs.setItem(row, 1, QTableWidgetItem(str(self.song_list[song]['title'])))
-                self.table_songs.setItem(row, 2, QTableWidgetItem(self.song_list[song]['album']))
-                self.table_songs.setItem(row, 3, QTableWidgetItem(str(self.song_list[song]['duration'])))
-            else:
-                pass
+                
+        self.table_songs.setRowCount(len(self.song_list))
+        for i in range(len(self.song_list)):
+            self.table_songs.setItem(i, 0, QTableWidgetItem(self.song_list[i]['artist']))
+            self.table_songs.setItem(i, 1, QTableWidgetItem(str(self.song_list[i]['file_name'])))
+            self.table_songs.setItem(i, 2, QTableWidgetItem(self.song_list[i]['album']))
+            self.table_songs.setItem(i, 3, QTableWidgetItem(str(self.song_list[i]['duration'])))
+
 
     def back(self):
-        open_file=""
         open_file = list(QFileDialog.getOpenFileNames(caption="Open Song")[0])
-        print(open_file)
         self.fill_list(open_file)
         if self.is_playing == False and self.pause == False:
             self.current_song = self.song_list[0]['path']
@@ -104,10 +104,13 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 current_row = self.song_list.index(item)
                 break
         
-        if current_row != len(self.song_list)-1:
+        if current_row != len(self.song_list)-1: #back to the first row if on the last row
             self.current_song = self.song_list[current_row+1]['path']
+            self.table_songs.selectRow(current_row+1)
         else:
             self.current_song = self.song_list[0]['path']
+            self.table_songs.selectRow(0)
+            
         self.stop()
         self.play_pause()
 
@@ -132,6 +135,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         song_album = audio.get("TALB").text[0]
         song_duration = audio.get("TLEN")
         song_path = mysong
+        file_name_without_path = os.path.basename(mysong)
+        song_file_name = os.path.splitext(file_name_without_path)[0]
         song_name = audio.get("TIT2")
         song_duration = str(strftime("%M:%S", gmtime(MP3(mysong).info.length)))
         song_tags = {
@@ -141,6 +146,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             'Artwork' : song_artwork,
             'Path' : song_path,
             "Title" : song_name,
+            "File_Name" : song_file_name,
             
         }
         return song_tags
