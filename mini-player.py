@@ -1,6 +1,7 @@
 from pygame import mixer
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6 import QtWidgets, uic, QtGui
+from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QFileDialog, QTableWidgetItem
 from PIL import ImageTk, Image
 from mutagen.id3 import ID3
@@ -15,6 +16,10 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.setupUi(self)
         mixer.init()
         self.setWindowTitle("--- Mini Player ---")
+        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_slider_position)
+        
         self.btn_playpause.clicked.connect(self.play_pause)
         self.btn_stop.clicked.connect(self.stop)
         self.btn_open_file.clicked.connect(self.open_file)
@@ -23,8 +28,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.btn_forward.clicked.connect(self.next)
         self.btn_back.clicked.connect(self.prev)
         self.btn_shuffle.clicked.connect(self.shuffle)
-        self.horizontalSlider.valueChanged.connect(self.seek_select)
-        
+        self.horizontalSlider.sliderReleased.connect(self.seek_select)
     
     is_playing = False
     pause = False
@@ -46,18 +50,24 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 self.is_playing = True
                 self.btn_playpause.setText("Pause")
                 self.label_changer()
+                current_song_duration = self.get_sec(self.song_list[self.table_songs.currentRow()]['duration'])
+                self.horizontalSlider.setMaximum(current_song_duration) #set HorizontalSlider Maximum Value = current song duration
+                self.timer.start(100) #set timer to every 100 ms update the horizontal slider
+                
                 
                 
             elif self.pause == True:
                 mixer.music.unpause()
                 self.pause = False
                 self.is_playing = True
+                self.timer.start(100)
                 self.btn_playpause.setText("Pause")
 
             else:
                 mixer.music.pause()
                 self.pause = True
                 self.is_playing = False
+                self.timer.stop()
                 self.btn_playpause.setText("Play")
 
     def stop(self):
@@ -66,6 +76,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         else:
             mixer.music.stop()
             self.is_playing = False
+            self.timer.stop()
+            self.horizontalSlider.setValue(0)
     
     def fill_list(self, open_file):
         for song in range(len(open_file)):
@@ -186,6 +198,10 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         else:
             pass
 
+    def update_slider_position(self):
+        current_position = mixer.music.get_pos() // 1000  # Convert milliseconds to seconds
+        print(current_position)
+        self.horizontalSlider.setValue(current_position)
 
     def artwork(self):
         artwork = self.tag_extractor(self.current_song)['Artwork']
@@ -195,7 +211,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.lbl_artwork.setPixmap(pixmap)
         else:
             self.lbl_artwork.setPixmap(QtGui.QPixmap(":/icons/images/list-music.png"))
-
 
 app = QtWidgets.QApplication(sys.argv)
 window = MainWindow()

@@ -153,6 +153,7 @@ class Ui_MainWindow(object):
         self.slider_volume.setMaximum(100)
         self.slider_volume.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.slider_volume.setObjectName("slider_volume")
+        self.slider_volume.setTickPosition(QtWidgets.QSlider.TickPosition.TicksLeft)
         self.horizontalLayout.addWidget(self.slider_volume)
         self.gridLayout_4.addWidget(self.frameButtons, 1, 0, 1, 1)
         self.gridLayout_6.addWidget(self.frameMiddle, 1, 0, 1, 1)
