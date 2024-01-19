@@ -19,11 +19,12 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.setWindowTitle("--- Mini Player ---")
         self.btn_playpause.clicked.connect(self.play_pause)
         self.btn_stop.clicked.connect(self.stop)
-        self.btn_back.clicked.connect(self.back)
+        self.btn_open_file.clicked.connect(self.open_file)
         # self.table_songs.itemSelectionChanged.connect(self.select_song)
         self.table_songs.itemDoubleClicked.connect(self.select_song)
         self.slider_volume.valueChanged.connect(self.volume_changer)
         self.btn_forward.clicked.connect(self.next)
+        self.btn_back.clicked.connect(self.prev)
         
     
     is_playing = False
@@ -31,13 +32,11 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     song_list = []
     current_song = ""
     song_path = []
-    list_counter = 0
     
     def volume_changer(self):
         mixer.music.set_volume(self.slider_volume.value()/100)
     
     def play_pause(self):
-        
         if self.song_list == []:
             return
         else:
@@ -69,7 +68,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.is_playing = False
     
     def fill_list(self, open_file):
-
         for song in range(len(open_file)):
             this_song =self.tag_extractor(open_file[song])
             song_dict = {
@@ -91,8 +89,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.table_songs.setItem(i, 2, QTableWidgetItem(self.song_list[i]['album']))
             self.table_songs.setItem(i, 3, QTableWidgetItem(str(self.song_list[i]['duration'])))
 
-
-    def back(self):
+    def open_file(self):
         open_file = list(QFileDialog.getOpenFileNames(caption="Open Song")[0])
         self.fill_list(open_file)
         if self.is_playing == False and self.pause == False:
@@ -111,10 +108,26 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.table_songs.selectRow(current_row+1)
         else:
             self.current_song = self.song_list[0]['path']
-            self.table_songs.selectRow(0)
-            
+            self.table_songs.selectRow(0)           
         self.stop()
         self.play_pause()
+        
+    def prev(self):
+        for item in self.song_list:
+            if item['path'] == self.current_song:
+                current_row = self.song_list.index(item)
+                print(current_row)
+                break
+        
+        if current_row != 0: #back to the first row if on the last row
+            self.current_song = self.song_list[current_row-1]['path']
+            self.table_songs.selectRow(current_row-1)
+        else:
+            self.current_song = self.song_list[len(self.song_list)-1]['path']
+            self.table_songs.selectRow(len(self.song_list)-1)           
+        self.stop()
+        self.play_pause()
+        
 
     
     def label_changer(self):
@@ -164,7 +177,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
 
 
 app = QtWidgets.QApplication(sys.argv)
-
 window = MainWindow()
 window.show()
 app.exec()
