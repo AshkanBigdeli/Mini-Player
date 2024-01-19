@@ -1,5 +1,3 @@
-# from cgitb import text
-import sys, os
 from pygame import mixer
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6 import QtWidgets, uic, QtGui
@@ -7,7 +5,7 @@ from PyQt6.QtWidgets import QFileDialog, QTableWidgetItem
 from PIL import ImageTk, Image
 from mutagen.id3 import ID3
 from mutagen.mp3 import MP3
-import io, easygui
+import io, easygui, random, sys, os
 from ui import main
 from time import strftime, gmtime
 
@@ -25,6 +23,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.slider_volume.valueChanged.connect(self.volume_changer)
         self.btn_forward.clicked.connect(self.next)
         self.btn_back.clicked.connect(self.prev)
+        self.btn_shuffle.clicked.connect(self.shuffle)
         
     
     is_playing = False
@@ -127,8 +126,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.table_songs.selectRow(len(self.song_list)-1)           
         self.stop()
         self.play_pause()
-        
-
     
     def label_changer(self):
         a = self.tag_extractor(self.current_song)
@@ -165,6 +162,19 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             
         }
         return song_tags
+
+    def shuffle(self):
+        if len(self.song_list) != 0:
+            rnd = random.randint(0, len(self.song_list)-1)
+            if rnd == self.table_songs.currentRow():
+                rnd = rnd + 1
+            self.current_song = self.song_list[rnd]['path']
+            self.stop()
+            self.play_pause()
+            self.table_songs.selectRow(rnd)
+        else:
+            pass
+
 
     def artwork(self):
         artwork = self.tag_extractor(self.current_song)['Artwork']
