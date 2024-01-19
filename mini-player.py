@@ -18,12 +18,12 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.btn_playpause.clicked.connect(self.play_pause)
         self.btn_stop.clicked.connect(self.stop)
         self.btn_open_file.clicked.connect(self.open_file)
-        # self.table_songs.itemSelectionChanged.connect(self.select_song)
         self.table_songs.itemDoubleClicked.connect(self.select_song)
         self.slider_volume.valueChanged.connect(self.volume_changer)
         self.btn_forward.clicked.connect(self.next)
         self.btn_back.clicked.connect(self.prev)
         self.btn_shuffle.clicked.connect(self.shuffle)
+        self.horizontalSlider.valueChanged.connect(self.seek_select)
         
     
     is_playing = False
@@ -47,6 +47,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 self.btn_playpause.setText("Pause")
                 self.label_changer()
                 
+                
             elif self.pause == True:
                 mixer.music.unpause()
                 self.pause = False
@@ -58,7 +59,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 self.pause = True
                 self.is_playing = False
                 self.btn_playpause.setText("Play")
-        
+
     def stop(self):
         if self.is_playing == False:
             pass
@@ -139,6 +140,16 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         selected_row = self.table_songs.currentRow()
         self.current_song = self.song_list[selected_row]['path']
         self.play_pause()
+
+    def seek_select(self):
+        current_row = self.table_songs.currentRow()
+        seek_value = self.song_list[current_row]['duration']
+        mixer.music.set_pos((self.horizontalSlider.value()*(self.get_sec(seek_value)))/100)
+
+    def get_sec(self, time_str):
+        """Get seconds from time."""
+        m, s = time_str.split(':')
+        return int(m) * 60 + int(s)
 
     def tag_extractor(self, mysong):
         audio = ID3(mysong)
