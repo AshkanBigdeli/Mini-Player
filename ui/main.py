@@ -17,6 +17,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 1112)
+        # MainWindow.setMinim
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -154,6 +155,7 @@ class Ui_MainWindow(object):
         self.slider_volume.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.slider_volume.setObjectName("slider_volume")
         self.slider_volume.setTickPosition(QtWidgets.QSlider.TickPosition.TicksLeft)
+        self.slider_volume.setMinimumWidth(60)
         self.horizontalLayout.addWidget(self.slider_volume)
         self.gridLayout_4.addWidget(self.frameButtons, 1, 0, 1, 1)
         self.gridLayout_6.addWidget(self.frameMiddle, 1, 0, 1, 1)

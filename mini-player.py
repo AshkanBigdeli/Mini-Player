@@ -16,10 +16,10 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.setupUi(self)
         mixer.init()
         self.setWindowTitle("--- Mini Player ---")
-        
+        self.setMinimumHeight(700)
+        self.setMinimumWidth(650)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_slider_position)
-        
         self.btn_playpause.clicked.connect(self.play_pause)
         self.btn_stop.clicked.connect(self.stop)
         self.btn_open_file.clicked.connect(self.open_file)
@@ -28,14 +28,18 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.btn_forward.clicked.connect(self.next)
         self.btn_back.clicked.connect(self.prev)
         self.btn_shuffle.clicked.connect(self.shuffle)
-        self.horizontalSlider.sliderReleased.connect(self.seek_select)
+        self.horizontalSlider.sliderPressed.connect(self.seek_select)
     
     is_playing = False
     pause = False
     song_list = []
     current_song = ""
     song_path = []
+    slider_current_position = 0
     
+    def initial_slider(self):
+        self.horizontalSlider.setValue(0)
+        
     def volume_changer(self):
         mixer.music.set_volume(self.slider_volume.value()/100)
     
@@ -51,16 +55,15 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 self.btn_playpause.setText("Pause")
                 self.label_changer()
                 current_song_duration = self.get_sec(self.song_list[self.table_songs.currentRow()]['duration'])
+                print(current_song_duration)
                 self.horizontalSlider.setMaximum(current_song_duration) #set HorizontalSlider Maximum Value = current song duration
-                self.timer.start(100) #set timer to every 100 ms update the horizontal slider
-                
-                
-                
+                self.timer.start(1000) #set timer to every 100 ms update the horizontal slider
+
             elif self.pause == True:
                 mixer.music.unpause()
                 self.pause = False
                 self.is_playing = True
-                self.timer.start(100)
+                self.timer.start(1000)
                 self.btn_playpause.setText("Pause")
 
             else:
@@ -77,7 +80,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             mixer.music.stop()
             self.is_playing = False
             self.timer.stop()
-            self.horizontalSlider.setValue(0)
+            self.initial_slider()
     
     def fill_list(self, open_file):
         for song in range(len(open_file)):
@@ -105,40 +108,45 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         open_file = list(QFileDialog.getOpenFileNames(caption="Open Song")[0])
         self.fill_list(open_file)
         if self.is_playing == False and self.pause == False:
+            self.table_songs.selectRow(0)
             self.current_song = self.song_list[0]['path']
             self.play_pause()
-            self.table_songs.selectRow(0)
+            
 
     def next(self):
-        for item in self.song_list:
-            if item['path'] == self.current_song:
-                current_row = self.song_list.index(item)
-                break
-        
-        if current_row != len(self.song_list)-1: #back to the first row if on the last row
-            self.current_song = self.song_list[current_row+1]['path']
-            self.table_songs.selectRow(current_row+1)
-        else:
-            self.current_song = self.song_list[0]['path']
-            self.table_songs.selectRow(0)           
-        self.stop()
-        self.play_pause()
+        self.initial_slider()
+        if len(self.song_list) >1 :
+            for item in self.song_list:
+                if item['path'] == self.current_song:
+                    current_row = self.song_list.index(item)
+                    break
+            
+            if current_row != len(self.song_list)-1: #back to the first row if on the last row
+                self.current_song = self.song_list[current_row+1]['path']
+                self.table_songs.selectRow(current_row+1)
+            else:
+                self.current_song = self.song_list[0]['path']
+                self.table_songs.selectRow(0)           
+            self.stop()
+            self.play_pause()
         
     def prev(self):
-        for item in self.song_list:
-            if item['path'] == self.current_song:
-                current_row = self.song_list.index(item)
-                print(current_row)
-                break
-        
-        if current_row != 0: #back to the first row if on the last row
-            self.current_song = self.song_list[current_row-1]['path']
-            self.table_songs.selectRow(current_row-1)
-        else:
-            self.current_song = self.song_list[len(self.song_list)-1]['path']
-            self.table_songs.selectRow(len(self.song_list)-1)           
-        self.stop()
-        self.play_pause()
+        if len(self.song_list) > 1 :
+            self.initial_slider()
+            for item in self.song_list:
+                if item['path'] == self.current_song:
+                    current_row = self.song_list.index(item)
+                    print(current_row)
+                    break
+            
+            if current_row != 0: #back to the first row if on the last row
+                self.current_song = self.song_list[current_row-1]['path']
+                self.table_songs.selectRow(current_row-1)
+            else:
+                self.current_song = self.song_list[len(self.song_list)-1]['path']
+                self.table_songs.selectRow(len(self.song_list)-1)           
+            self.stop()
+            self.play_pause()
     
     def label_changer(self):
         a = self.tag_extractor(self.current_song)
@@ -147,6 +155,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.lbl_artist.setText(str(a["Title"]))
         
     def select_song(self):
+        self.initial_slider()
         mixer.music.stop()
         self.is_playing = False
         selected_row = self.table_songs.currentRow()
@@ -156,7 +165,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     def seek_select(self):
         current_row = self.table_songs.currentRow()
         seek_value = self.song_list[current_row]['duration']
-        mixer.music.set_pos((self.horizontalSlider.value()*(self.get_sec(seek_value)))/100)
+        mixer.music.set_pos((self.horizontalSlider.value()))#*(self.get_sec(seek_value)))/100)
+        self.horizontalSlider.setValue(int((self.horizontalSlider.value())))#*(self.get_sec(seek_value)))/100))
 
     def get_sec(self, time_str):
         """Get seconds from time."""
@@ -187,7 +197,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         return song_tags
 
     def shuffle(self):
-        if len(self.song_list) != 0:
+        if len(self.song_list) > 1:
+            self.initial_slider()
             rnd = random.randint(0, len(self.song_list)-1)
             if rnd == self.table_songs.currentRow():
                 rnd = rnd + 1
@@ -195,13 +206,12 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.stop()
             self.play_pause()
             self.table_songs.selectRow(rnd)
-        else:
-            pass
 
     def update_slider_position(self):
-        current_position = mixer.music.get_pos() // 1000  # Convert milliseconds to seconds
-        print(current_position)
-        self.horizontalSlider.setValue(current_position)
+        self.slider_current_position = 0
+        self.slider_current_position += self.horizontalSlider.value() + 1
+        print(self.slider_current_position)
+        self.horizontalSlider.setValue(self.slider_current_position)
 
     def artwork(self):
         artwork = self.tag_extractor(self.current_song)['Artwork']
