@@ -9,6 +9,7 @@ from mutagen.mp3 import MP3
 import io, easygui, random, sys, os
 from ui import main
 from time import strftime, gmtime
+from datetime import timedelta
 
 class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
     def __init__(self, *args, obj=None, **kwargs):
@@ -18,8 +19,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.setWindowTitle("--- Mini Player ---")
         self.setMinimumHeight(750)
         self.setMinimumWidth(650)
-        # self.setWindowOpacity(0.8)
-        
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_slider_position)
         self.timer.timeout.connect(self.auto_next_play)
@@ -119,6 +118,8 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             self.is_playing = False
             self.timer.stop()
             self.initial_slider()
+            self.elapsed_time.setText("--:--")
+            self.remaining_time.setText("--:--")
             self.lbl_artwork.setPixmap(QtGui.QPixmap(":/icons/images/list-music.png"))
             self.btn_playpause.setIcon(QIcon(QDir.current().filePath("ui/images/play.png")))
     
@@ -126,7 +127,23 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         if not self.horizontalSlider.isEnabled():
             self.horizontalSlider.setEnabled(True)
 
+    def format_time(self, seconds):
+        time_delta = timedelta(seconds=seconds)
+        hours, remainder = divmod(time_delta.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_time = "{:02}:{:02}".format(minutes, seconds)
+        if time_delta.days > 0 or hours > 0:
+            formatted_time = "{:02}:{:02}:{:02}".format(hours, minutes, seconds)
+
+        return formatted_time
     
+    def time_label_counter(self):
+        if self.is_playing == True:
+            time_counter = self.horizontalSlider.value()
+            self.remaining_time.setText(str(self.format_time(self.horizontalSlider.maximum() - time_counter)))
+            self.elapsed_time.setText(str(self.format_time(time_counter)))
+
+
     def fill_list(self, open_file):
         
         for song in range(len(open_file)):
@@ -137,7 +154,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
                 "album": this_song["Album"],
                 "artist": this_song["Artist"],
                 "file_name" : this_song["File_Name"],
-                # "artwork": this_song["Artwork"],
                 "duration": this_song["Duration"],
             }
             if song_dict not in self.song_list:
@@ -213,13 +229,10 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
 
     def seek_select(self):
         if len(self.song_list) > 0:
-
             current_row = self.table_songs.currentRow()
             seek_value = self.song_list[current_row]['duration']
             mixer.music.set_pos((self.horizontalSlider.value()))
             self.horizontalSlider.setValue(int((self.horizontalSlider.value())))
-        # else:
-        #     self.horizontalSlider.isEnabled(False)
 
     def get_sec(self, time_str):
         """Get seconds from time."""
@@ -248,7 +261,6 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
             song_name = audio.get("TALB").text[0]
         else:
             song_name = "Unknown Title"
-        # song_name = audio.get("TIT2")
         song_duration = str(strftime("%M:%S", gmtime(MP3(mysong).info.length)))
         song_tags = {
             'Artist' : song_artist,
@@ -278,6 +290,7 @@ class MainWindow(QtWidgets.QMainWindow, main.Ui_MainWindow):
         self.slider_current_position = 0
         self.slider_current_position += self.horizontalSlider.value() + 1
         self.horizontalSlider.setValue(self.slider_current_position)
+        self.time_label_counter()
 
     def artwork(self):
         artwork = self.tag_extractor(self.current_song)['Artwork']
