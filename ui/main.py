@@ -9,14 +9,15 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-import PyQt6
+from PyQt6.QtGui import QCursor
 from PyQt6.QtCore import Qt
+from PyQt6 import *
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 1112)
+        MainWindow.resize(650, 900)
         # MainWindow.setMinim
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -61,6 +62,8 @@ class Ui_MainWindow(object):
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.horizontalSlider = QtWidgets.QSlider(Qt.Orientation.Horizontal)
         self.horizontalSlider.setObjectName("horizontalSlider")
+        self.horizontalSlider.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.horizontalSlider.setEnabled(False)
         self.gridLayout_3.addWidget(self.horizontalSlider, 0, 0, 1, 1)
         self.lbl_song = QtWidgets.QLabel(self.frameSlider)
         font = QtGui.QFont()
@@ -137,9 +140,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.btn_forward)
         
         self.btn_shuffle = QtWidgets.QPushButton(self.frameButtons)
-        self.btn_shuffle.setText("Shuffle")
+        self.btn_shuffle.setText("")
         # self.btn_shuffle.setBaseSize(30,30)
-        self.btn_shuffle.setFixedSize(80,50)
+        self.btn_shuffle.setFixedSize(60,46)
         # icon = QtGui.QIcon()
         # icon.addPixmap(QtGui.QPixmap(":/icons/images/forward-fast.png")), #QtGui.QIcon.Normal, QtGui.QIcon.Off)
         # self.btn_shuffle.setIcon(icon)
